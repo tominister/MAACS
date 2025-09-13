@@ -1,6 +1,8 @@
 ---
 title: "Homework 2 Report"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 
@@ -15,7 +17,7 @@ Read in the data with `read_csv()` and store the data as an R object named `data
 
 ```{r}
 ## Load the data and any necessary packages here.
-
+dataset=read.csv("maacs.csv.gz")
 ```
 
 ## Part 1
@@ -32,7 +34,19 @@ NOTE: For this part, do not use any plots.
 
 ```{r}
 ## Write your function here
+check_fev1_age_relationship <- function(dataset) {
+  sorted_data <- dataset[order(dataset$age), ]
+  for (i in 2:nrow(sorted_data)) {
+    if (sorted_data$fev1[i] <= sorted_data$fev1[i - 1]) {
+      return(FALSE)  
+    }
+  }
+  return(TRUE)
+}
 
+dataset_clean <- dataset[!is.na(dataset$age) & !is.na(dataset$fev1), ]
+result <- check_fev1_age_relationship(dataset_clean)
+print(result)
 ```
 
 
@@ -44,12 +58,13 @@ How much does FEV1 change for a 1-year increase in the child's age?
 
 ```{r}
 ## Add your code here
-
+model <- lm(fev1 ~ age, data = dataset)
+summary(model)
 ```
 
 
 Write your data analysis statement interpreting the regression model here:
-
+It is estimated that FEV1 increases by around 0.171 liters for each increase in age by 1. 
 
 
 ## Part 3
@@ -58,19 +73,31 @@ Develop **three** supporting premises derived from the data that support the sta
 
 NOTE: At least one supporting premise should use a plot.
 
-```{r}
+```{r, warning=F}
 ## Add your code here
+correlation <- cor(dataset$age, dataset$fev1, use = "complete.obs")
+print(correlation)
 
+model <- lm(fev1 ~ age, data = dataset)
+summary(model)
+
+library(ggplot2)
+ggplot(dataset, aes(x = age, y = fev1)) +
+  geom_point() +  # Scatter plot without the regression line
+  labs(title = "Scatter Plot of Age vs FEV1",
+       x = "Age (Years)",
+       y = "FEV1") +
+  theme_minimal()
 ```
 
 
 Write the three supporting premise statements here:
 
-1. 
+1. There is a strong positive correlation between FEV1 and age.
 
-2. 
+2. The slope for the linear regression model is positive. 
 
-3. 
+3. The scatterplot with the 2 variables shows an upward trend 
 
 
 ## Part 4
@@ -86,23 +113,71 @@ For statements involving plots, instead of returning `TRUE` or `FALSE`, you func
 
 ```{r}
 ## Function for supporting premise statement 1
-
+check_correlation <- function(dataset) {
+  correlation <- cor(dataset$age, dataset$fev1, use = "complete.obs")
+  if (correlation > 0.7) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
 ```
 
 
 ```{r}
 ## Function for supporting premise statement 2
-
+check_slope_positive <- function(dataset) {
+  model <- lm(fev1 ~ age, data = dataset)
+  if (summary(model)$coefficients[2, 1] > 0) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
 ```
 
 
 ```{r}
 ## Function for supporting premise statement 3
-
+check_scatterplot_upward_trend <- function(dataset) {
+  plot <- ggplot(dataset, aes(x = age, y = fev1)) +
+    geom_point() +  
+    labs(title = "Scatter Plot of Age vs FEV1",
+         x = "Age (Years)",
+         y = "FEV1") +
+    theme_minimal()
+  print(plot)
+  
+  # Simulate hypothetical data with an upward trend
+  set.seed(42)  # for reproducibility
+  age_sim <- seq(0, 20, length.out = 100)  # 100 age values from 0 to 20
+  fev1_sim <- 0.8 + 0.1 * age_sim + rnorm(100, mean = 0, sd = 0.2)  # linear trend + noise
+  
+  simulated_data <- data.frame(age = age_sim, fev1 = fev1_sim)
+  
+  # Create the hypothetical plot
+  hypothetical_plot <- ggplot(simulated_data, aes(x = age, y = fev1)) +
+    geom_point(color = "blue", alpha = 0.6) +  # simulated points
+    geom_smooth(method = "lm", se = FALSE, color = "red") +  # regression line
+    labs(title = "Hypothetical Scatter Plot with Upward Trend",
+         x = "Age (Years)",
+         y = "FEV1") +
+    theme_minimal()
+  
+  # Display the plot
+  print(hypothetical_plot)
+}
 ```
 
 Execute each of your function and show that the produce the expected output.
 
+```{r, message=F}
+result1 <- check_correlation(dataset_clean)
+print(result1)
+result2 <-check_slope_positive(dataset_clean)
+print(result2)
+check_scatterplot_upward_trend(dataset_clean)
+```
 
 
 
