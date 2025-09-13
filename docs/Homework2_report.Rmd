@@ -8,7 +8,7 @@ output:
 
 ## Name
 
-Please enter your name here.
+Haoran (Tommy) Fang
 
 ### Setup
 
